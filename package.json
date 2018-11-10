@@ -1,0 +1,23 @@
+{
+  "name": "lawtext2obj",
+  "version": "0.0.1",
+  "description": "將全國法規資料庫那種每32字就換行的字串，轉換成巢狀陣列",
+  "main": "lawtext2obj.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kong0107/lawtext2obj.git"
+  },
+  "keywords": [
+    "Taiwan",
+    "law"
+  ],
+  "author": "kong0107",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kong0107/lawtext2obj/issues"
+  },
+  "homepage": "https://github.com/kong0107/lawtext2obj#readme"
+}
