@@ -8,7 +8,7 @@ const lawtext2obj = (text, options) => {
         /^\s*[一二三四五六七八九十]+(、|　|  )/,  // 憲法裡的「款」有些是全形空格，有些是兩個半形空格
         /^\s*[\(（][一二三四五六七八九十]+[\)）]/, // 有些括號是全形，有些是半形
         /^\s+\d+\./,
-        /^\s+（\d+）/
+        /^\s+[\(（]\d+[\)）]/
     ];
     const getStratum = text => {
         for(let i = stratumRE.length - 1; i >= 0; --i)
