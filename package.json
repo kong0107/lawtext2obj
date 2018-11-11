@@ -1,6 +1,6 @@
 {
   "name": "lawtext2obj",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "將全國法規資料庫那種每32字就換行的字串，轉換成巢狀陣列",
   "main": "lawtext2obj.js",
   "scripts": {
