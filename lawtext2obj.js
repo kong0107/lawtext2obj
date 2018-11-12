@@ -1,31 +1,37 @@
-const lawtext2obj = (text, options) => {
-    const lines = text.trimEnd().split("\n").map(str => str.trimEnd());
-    let result = [];
+let lawtext2obj;
 
-    const stratumRE = [
-        /^(?! )/,
-        /^第[一二三四五六七八九十]+類：/,          // 所得稅法第14條第1項
-        /^\s*[一二三四五六七八九十]+(、|　|  )/,  // 憲法裡的「款」有些是全形空格，有些是兩個半形空格
-        /^\s*[\(（][一二三四五六七八九十]+[\)）]/, // 有些括號是全形，有些是半形
-        /^\s+\d+\./,
-        /^\s+[\(（]\d+[\)）]/
-    ];
-    const getStratum = text => {
-        for(let i = stratumRE.length - 1; i >= 0; --i)
-            if(stratumRE[i].test(text)) return i;
-        return -1;
-    };
+{
+/**
+ * 判斷項款目
+ */
+const stratumRE = [
+    /^(?! )/,
+    /^第[一二三四五六七八九十]+類：/,          // 所得稅法第14條第1項
+    /^\s*[一二三四五六七八九十]+(、|　|  )/,  // 憲法裡的「款」有些是全形空格，有些是兩個半形空格
+    /^\s*[\(（][一二三四五六七八九十]+[\)）]/, // 有些括號是全形，有些是半形
+    /^\s+\d+\./,
+    /^\s+[\(（]\d+[\)）]/
+];
+const getStratum = text => {
+    for(let i = stratumRE.length - 1; i >= 0; --i)
+        if(stratumRE[i].test(text)) return i;
+    return -1;
+};
+
+
+/**
+ * 處理換行字元排版，輸出一維陣列。
+ *
+ * 所得稅法第14條第1項那種「類」裡面還有分「段」的，先加個換行然後併進前一個元素裡。
+ * 該項第四類各款後還有一段，就會被錯誤地歸到該類第三款裡頭，不過先不管了。
+ */
+const text2paras = text => {
+    const lines = text.trimEnd().split("\n").map(str => str.trimEnd());
 
     let paras = []; // 不管層級的項款目陣列
     let curPara = "";   // 處理中的項款目，不含空格，用於輸出
     let firstLineInPara = ""; // 處理中的項款目的第一行原始文字，包含空格，用於判斷層級，以及是不是所得稅法第14條的情形。
 
-    /**
-     * 先處理換行字元排版的問題，仍維持一維陣列。
-     *
-     * 所得稅法第14條第1項那種「類」裡面還有分「段」的，先加個換行然後併進前一個元素裡。
-     * 該項第四類各款後還有一段，就會被錯誤地歸到該類第三款裡頭，不過先不管了。
-     */
     lines.forEach(line => {
         if(!curPara) firstLineInPara = line;
         curPara += line.trimStart();
@@ -39,43 +45,50 @@ const lawtext2obj = (text, options) => {
             children: []
         });
 
-        /**
-         * 若該行是句號結尾，但其實還沒有要分項，則標示警告。
-         */
+        // 有可能該行雖是句號結尾，但其實還沒有要分項，因此標示警告。
         if(line.length == 32 && line.charAt(31) == "。")
             paras[paras.length - 1].warning = true;
 
         curPara = "";
     });
 
-    /**
-     * 把項目塞到「前一個比自己高層級」的 children 裡。
-     */
-    paras.forEach((para, i) => {
-        const s = para.stratum;
+    return paras;
+};
+
+/**
+ * 把一維陣列轉成巢狀
+ *
+ * 方法：把項目塞到「前一個比自己高層級」的 children 裡。
+ */
+const arr2nested = (arr, depthProp = "stratum") => {
+    let result = [];
+    arr.forEach((item, i) => {
+        const s = item[depthProp];
         if(s < 0) throw new Error("分層錯誤");
         if(s == 0) {
-            result.push(para);
+            result.push(item);
             return;
         }
         for(let j = i - 1; j >= 0; --j)
-            if(paras[j].stratum < s) {
-                paras[j].children.push(para);
+            if(arr[j][depthProp] < s) {
+                if(!arr[j].children) arr[j].children = [];
+                arr[j].children.push(item);
                 return;
             }
     });
-
-    /**
-     * 稍作整理，刪掉不需要的屬性
-     */
-    paras.forEach(para => {
-        if(!para.children.length) delete para.children;
-    });
-
     return result;
-};
+}
 
-if(typeof module === 'object') module.exports = module.exports = lawtext2obj;
+lawtext2obj = text => arr2nested(text2paras(text));
+Object.defineProperties(lawtext2obj, {
+    "stratumRE": {value: stratumRE},
+    "getStratum": {value: getStratum},
+    "text2paras": {value: text2paras},
+    "arr2nested": {value: arr2nested}
+});
+}
+
+if(typeof module === 'object') module.exports = lawtext2obj;
 //export default lawtext2obj;
 /*
     如果改成 ES6 方式：
