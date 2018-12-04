@@ -52,9 +52,18 @@ const text2paras = text => {
         // 如果這一行「不是」項款目的結束，那就換下一行處理。
         if(!/(：|︰|。|（刪除）)$/.test(line)) return;
 
-        // 處理「這一個項款目結束了」的情形。
+        /**
+         * 處理「這一個項款目結束了」的情形。
+         * 預設是要將 curPara 當成一個新的項款目塞入，但要先偵測兩種例外情形：
+         * 如果 stratum 小於零，那就是所得稅法第14條那種「類款目」裡頭還分段的情形；
+         * 如果被判斷為「項」並以「但」字開頭，表示是前一個滿行的「項」的但書，例如所得稅法第80條第3項但書。
+         */
         const stratum = getStratum(firstLineInPara);
         if(stratum < 0) paras[paras.length - 1].text += "\n" + curPara;
+        else if(stratum === 0 && curPara.startsWith("但")) {
+            paras[paras.length - 1].text += curPara;
+            delete paras[paras.length - 1].warning;
+        }
         else paras.push({
             text: curPara,
             stratum: stratum,
@@ -62,7 +71,7 @@ const text2paras = text => {
         });
 
         const lastPara = paras[paras.length - 1];
-        // 有可能該行雖是句號結尾，但其實還沒有要分項，因此標示警告。
+        // 有可能該行雖是句號結尾，但其實還沒有要分項，因此標示警告。例如所得稅法第14-7條第4項。
         if(!warning && line.length == 32 && line.charAt(31) == "。") warning = "fullLine";
         if(warning) {
             lastPara.warning = warning;
