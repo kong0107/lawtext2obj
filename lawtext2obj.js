@@ -92,14 +92,12 @@ const text2paras = text => {
  * 方法：把項目塞到「前一個比自己高層級」的 children 裡。
  */
 const arr2nested = (arr, depthProp = "stratum") => {
-    let result = [];
+    let minDepth;
     arr.forEach((item, i) => {
         const s = item[depthProp];
         if(s < 0) throw new Error("分層錯誤");
-        if(s == 0) {
-            result.push(item);
-            return;
-        }
+        minDepth = i ? Math.min(minDepth, s) : s;
+        if(s == minDepth) return;
         for(let j = i - 1; j >= 0; --j)
             if(arr[j][depthProp] < s) {
                 if(!arr[j].children) arr[j].children = [];
@@ -107,7 +105,8 @@ const arr2nested = (arr, depthProp = "stratum") => {
                 return;
             }
     });
-    return result;
+    // 最後回傳最高層級的陣列，即會有全部。
+    return arr.filter(item => item[depthProp] == minDepth);
 }
 
 lawtext2obj = text => arr2nested(text2paras(text));
