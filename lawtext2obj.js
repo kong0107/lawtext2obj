@@ -1,5 +1,9 @@
 let lawtext2obj;
 
+// for Microsoft Edge
+if(!String.prototype.trimStart) String.prototype.trimStart = String.prototype.trimLeft;
+if(!String.prototype.trimEnd) String.prototype.trimEnd = String.prototype.trimRight;
+
 {
 /**
  * 判斷項款目
