@@ -44,4 +44,4 @@
 
 * 本專案乃針對全國法規資料庫所做，「目」的括號是全形；但留意立法院法律系統中的括號是半形。
 * 所得稅法第4條第1項第22款共三段、第14條第1項第4類第2段、第17條第1項第2款第3目6.（2）超煩。
-  參閱 https://law.moj.gov.tw/LawClass/LawSearchNo.aspx?PC=G0340003&DF=&SNo=4%2c14%2c17
+  參閱 https://law.moj.gov.tw/LawClass/LawSearchContent.aspx?pcode=G0340003&norge=4,14,17
