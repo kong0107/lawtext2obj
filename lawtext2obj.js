@@ -1,9 +1,5 @@
 let lawtext2obj;
 
-// for Microsoft Edge
-if(!String.prototype.trimStart) String.prototype.trimStart = String.prototype.trimLeft;
-if(!String.prototype.trimEnd) String.prototype.trimEnd = String.prototype.trimRight;
-
 {
 /**
  * 判斷項款目
@@ -11,10 +7,10 @@ if(!String.prototype.trimEnd) String.prototype.trimEnd = String.prototype.trimRi
 const stratumRE = [
     /^(?! )/,
     /^第[一二三四五六七八九十]+類：/,          // 所得稅法第14條第1項
-    /^\s*[一二三四五六七八九十]+(、|　|  )/,  // 憲法裡的「款」有些是全形空格，有些是兩個半形空格
-    /^\s*[\(（][一二三四五六七八九十]+[\)）]/, // 有些括號是全形，有些是半形
+    /^\s*[一二三四五六七八九十]+(、|　| {2})/,  // 憲法裡的「款」有些是全形空格，有些是兩個半形空格
+    /^\s*[(（][一二三四五六七八九十]+[)）]/, // 有些括號是全形，有些是半形
     /^\s+\d+\./,
-    /^\s+[\(（]\d+[\)）]/
+    /^\s+[(（]\d+[)）]/
 ];
 const getStratum = text => {
     for(let i = stratumRE.length - 1; i >= 0; --i)
@@ -38,7 +34,7 @@ const getStratum = text => {
  *   @see {@link https://unicode-table.com/en/blocks/box-drawing/ }
  */
 const text2paras = text => {
-    const lines = text.trimEnd().split("\n").map(str => str.trimEnd());
+    const lines = text.trimRight().split("\n").map(str => str.trimRight());
 
     let paras = []; // 不管層級的項款目陣列
     let curPara = "";   // 處理中的項款目，不含空格，用於輸出
@@ -48,7 +44,7 @@ const text2paras = text => {
 
     lines.forEach(line => {
         if(!curPara) firstLineInPara = line;
-        curPara += line.trimStart();
+        curPara += line.trimLeft();
         raw.push(line);
         if(/[\u2500-\u257F]/.test(line)) warning = "table";
         if(/[\u2200-\u22FF＊＋－／＜＝＞]/.test(line)) warning = "formula";
@@ -76,7 +72,7 @@ const text2paras = text => {
 
         const lastPara = paras[paras.length - 1];
         // 有可能該行雖是句號結尾，但其實還沒有要分項，因此標示警告。例如所得稅法第14-7條第4項。
-        if(!warning && line.length == 32 && line.charAt(31) == "。") warning = "fullLine";
+        if(!warning && line.length === 32 && line.charAt(31) === "。") warning = "fullLine";
         if(warning) {
             lastPara.warning = warning;
             lastPara.raw = raw;
@@ -101,7 +97,7 @@ const arr2nested = (arr, depthProp = "stratum") => {
         const s = item[depthProp];
         if(s < 0) throw new Error("分層錯誤");
         minDepth = i ? Math.min(minDepth, s) : s;
-        if(s == minDepth) return;
+        if(s === minDepth) return;
         for(let j = i - 1; j >= 0; --j)
             if(arr[j][depthProp] < s) {
                 if(!arr[j].children) arr[j].children = [];
@@ -110,7 +106,7 @@ const arr2nested = (arr, depthProp = "stratum") => {
             }
     });
     // 最後回傳最高層級的陣列，即會有全部。
-    return arr.filter(item => item[depthProp] == minDepth);
+    return arr.filter(item => item[depthProp] === minDepth);
 }
 
 lawtext2obj = text => arr2nested(text2paras(text));
